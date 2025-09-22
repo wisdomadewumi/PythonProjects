@@ -1,8 +1,11 @@
 import sys
+import os
 import requests
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel,
                              QLineEdit, QPushButton, QVBoxLayout)
 from PyQt5.QtCore import Qt
+from dotenv import load_dotenv # For loading environment variables from .env
+
 
 class WeatherApp(QWidget):
     """
@@ -13,6 +16,7 @@ class WeatherApp(QWidget):
     - Fetches real-time weather data from OpenWeatherMap API
     - Displays temperature, weather description, and corresponding emoji
     - Handles errors gracefully with user-friendly messages
+    - Loads API key from .env file for security.
     """
 
     def __init__(self):
@@ -95,12 +99,13 @@ class WeatherApp(QWidget):
         self.city_input.returnPressed.connect(self.get_weather)
 
     def get_weather(self):
+        load_dotenv()  # Load environment variables from .env file
         """
         Fetch weather data from OpenWeatherMap API based on city input.
         Displays weather data or error messages depending on the API response.
         """
-        api_key = "3e026f57ba9b6492ec6723e9af1a163f"
-        city_name = self.city_input.text().strip() # Remove leading/trailing spaces
+        api_key = os.getenv("OPENWEATHER_API_KEY")
+        city_name = self.city_input.text().strip()  # Remove leading/trailing spaces
 
         # Construct the API URL
         url = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}"
@@ -108,7 +113,7 @@ class WeatherApp(QWidget):
         try:
             # Send GET request to the API
             response = requests.get(url)
-            response.raise_for_status() # Raise error for bad HTTP responses
+            response.raise_for_status()  # Raise error for bad HTTP responses
             data = response.json()
 
             # If response code is 200, weather data exists for this city
@@ -119,7 +124,8 @@ class WeatherApp(QWidget):
             # Handling specific HTTP error codes
             match response.status_code:
                 case 400:
-                    self.display_error("Bad request:\nPlease check your city name")
+                    self.display_error(
+                        "Bad request:\nPlease check your city name")
                 case 401:
                     self.display_error("Unauthorized:\nInvalid API key")
                 case 403:
@@ -127,13 +133,16 @@ class WeatherApp(QWidget):
                 case 404:
                     self.display_error("Not found:\nCity not found")
                 case 500:
-                    self.display_error("Internal Server Error:\nPlease try again later")
+                    self.display_error(
+                        "Internal Server Error:\nPlease try again later")
                 case 502:
-                    self.display_error("Bad Gateway:\nInvalid response from the server")
+                    self.display_error(
+                        "Bad Gateway:\nInvalid response from the server")
                 case 503:
                     self.display_error("Service Unavailable:\nService is down")
                 case 504:
-                    self.display_error("Gateway Timeout:\nNo response from the server")
+                    self.display_error(
+                        "Gateway Timeout:\nNo response from the server")
                 case _:
                     self.display_error(f"HTTP error occurred:\n{http_error}")
 
@@ -146,7 +155,6 @@ class WeatherApp(QWidget):
             print("Too many Redirects:\nCheck the URL")
         except requests.exceptions.RequestException as req_error:
             print(f"Something went wrong:\n{req_error}")
-
 
     def display_error(self, message):
         """
@@ -169,8 +177,9 @@ class WeatherApp(QWidget):
 
         # Extract temperature (in Kelvin) and convert to Celsius/Fahrenheit
         temperature_k = data["main"]["temp"]
-        temperature_c = temperature_k - 273.15 # Kelvin to Celsius
-        temperature_f = (temperature_k - 273.15) * 9 / 5 + 32 # Kelvin to Fahrenheit
+        temperature_c = temperature_k - 273.15  # Kelvin to Celsius
+        temperature_f = (temperature_k - 273.15) * 9 / \
+            5 + 32  # Kelvin to Fahrenheit
 
         # Extract weather condition details
         weather_id = data["weather"][0]["id"]
@@ -192,27 +201,28 @@ class WeatherApp(QWidget):
         """
 
         if 200 <= weather_id <= 232:
-            return "⛈️" # thunderstorm
+            return "⛈️"  # thunderstorm
         elif 300 <= weather_id <= 321:
-            return "🌦️" # drizzle
+            return "🌦️"  # drizzle
         elif 500 <= weather_id <= 531:
-            return "🌧️" # rain
+            return "🌧️"  # rain
         elif 600 <= weather_id <= 622:
-            return "❄️" # snow
+            return "❄️"  # snow
         elif 701 <= weather_id <= 741:
-            return "🌫️" # mist or fog
+            return "🌫️"  # mist or fog
         elif weather_id == 762:
-            return "🌋" # volcanic ash
+            return "🌋"  # volcanic ash
         elif weather_id == 771:
-            return "💨" # squall - violent gust of wind
+            return "💨"  # squall - violent gust of wind
         elif weather_id == 781:
-            return "🌪️" # tornado
+            return "🌪️"  # tornado
         elif weather_id == 800:
-            return "☀️" # clear sky
+            return "☀️"  # clear sky
         elif 801 <= weather_id <= 804:
             return "☁️"
         else:
             return ""
+
 
 if __name__ == "__main__":
     # Entry point: Create the application and run the event loop
