@@ -99,17 +99,19 @@ class WeatherApp(QWidget):
         self.city_input.returnPressed.connect(self.get_weather)
 
     def get_weather(self):
-        load_dotenv()  # Load environment variables from .env file
         """
         Fetch weather data from OpenWeatherMap API based on city input.
-        Displays weather data or error messages depending on the API response.
         """
+        load_dotenv()  # Load environment variables from .env file
         api_key = os.getenv("OPENWEATHER_API_KEY")
         city_name = self.city_input.text().strip()  # Remove leading/trailing spaces
 
         # Construct the API URL
         url = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}"
 
+        """
+        Displays weather data or error messages depending on the API response.
+        """
         try:
             # Send GET request to the API
             response = requests.get(url)
