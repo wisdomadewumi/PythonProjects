@@ -4,7 +4,7 @@ import requests
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel,
                              QLineEdit, QPushButton, QVBoxLayout)
 from PyQt5.QtCore import Qt
-from dotenv import load_dotenv # For loading environment variables from .env
+from dotenv import load_dotenv  # For loading environment variables from .env
 
 
 class WeatherApp(QWidget):
